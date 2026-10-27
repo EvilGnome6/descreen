@@ -1,0 +1,10 @@
+.DS_Store
+.venv/
+**/__pycache__/
+*.pyc
+app/build/
+app/Descreen/Resources/engine/
+engine/.venv/
+engine/dist/
+*.app/
+_compare/
