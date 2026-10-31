@@ -3,7 +3,7 @@
 
 Takes a Pixelmator-processed JPEG (already straightened, cropped, WhiBal'd)
 and notches the CMYK halftone screen. Archival MusicBrainz JPEGs stay as-is.
-Writes the full-res result plus a 1000px-tall copy for players.
+Writes the full-res result plus a 600px-tall copy for players.
 
 Mirrors Sattva's two handwritten passes: (1) remove the screen lattice and
 its harmonics, (2) reduce the colour rosette — then apply that only where
@@ -658,7 +658,7 @@ def descreen_rgb(
     return screened, info
 
 
-EMBED_HEIGHT = 1000
+EMBED_HEIGHT = 600
 
 
 def resize_height(rgb: np.ndarray, height: int) -> np.ndarray:
@@ -679,7 +679,7 @@ def default_output(src: Path) -> Path:
 def parse_args(argv: list[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="Descreen a Pixelmator-processed CD front. Writes full-res "
-        "and a 1000px-tall copy for FLAC embed. Do not run this on archival MusicBrainz JPEGs."
+        "and a 600px-tall copy for FLAC embed. Do not run this on archival MusicBrainz JPEGs."
     )
     p.add_argument("input", type=Path, help="Straightened, cropped, WhiBal'd front JPEG")
     p.add_argument("-o", "--output", type=Path, help="Full-res JPEG (default: *-descreen.jpg)")
@@ -766,7 +766,7 @@ def main(argv: list[str]) -> int:
     dest = (args.output or default_output(src)).expanduser().resolve()
     save_jpeg(dest, full, quality=args.quality, icc_profile=meta["icc_profile"], dpi=meta["dpi"])
 
-    embed = dest.with_name(dest.stem + "-1000.jpg")
+    embed = dest.with_name(dest.stem + "-600.jpg")
     embed_rgb = resize_height(full, EMBED_HEIGHT)
     save_jpeg(embed, embed_rgb, quality=args.quality, icc_profile=meta["icc_profile"], dpi=(72.0, 72.0))
 
