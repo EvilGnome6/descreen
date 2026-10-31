@@ -1,6 +1,6 @@
 # Descreen
 
-Mac-native drop target for descreening offset-printed CD front JPEGs (Pixelmator-processed: straightened, cropped, WhiBal’d). Writes a full-res `*-descreen.jpg` plus a 1000px-tall embed copy for FLAC tags.
+Mac-native drop target for descreening offset-printed CD front JPEGs (Pixelmator-processed: straightened, cropped, WhiBal’d). Writes a full-res `*-descreen.jpg` plus a 600px-tall embed copy for FLAC tags.
 
 Same layout as [ctdbfix](../ctdbfix): Python **engine** + AppKit **app**.
 
