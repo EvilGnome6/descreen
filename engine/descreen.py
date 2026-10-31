@@ -3,7 +3,7 @@
 
 Takes a Pixelmator-processed JPEG (already straightened, cropped, WhiBal'd)
 and notches the CMYK halftone screen. Archival MusicBrainz JPEGs stay as-is.
-Writes the full-res result plus a 600px-tall copy for players.
+Writes the full-res result plus a max-600px (longer side) copy for players.
 
 Mirrors Sattva's two handwritten passes: (1) remove the screen lattice and
 its harmonics, (2) reduce the colour rosette — then apply that only where
@@ -658,16 +658,19 @@ def descreen_rgb(
     return screened, info
 
 
-EMBED_HEIGHT = 600
+EMBED_MAX = 600  # longer side; embed fits inside EMBED_MAX×EMBED_MAX, never upscales
 
 
-def resize_height(rgb: np.ndarray, height: int) -> np.ndarray:
+def resize_max(rgb: np.ndarray, max_side: int) -> np.ndarray:
+    """Fit inside max_side×max_side preserving aspect ratio; never upscale."""
     h, w = rgb.shape[:2]
-    if h <= height:
+    if max(h, w) <= max_side:
         return rgb
-    nw = int(round(w * (height / h)))
+    scale = max_side / max(h, w)
+    nw = max(1, int(round(w * scale)))
+    nh = max(1, int(round(h * scale)))
     im = Image.fromarray((np.clip(rgb, 0, 1) * 255.0 + 0.5).astype(np.uint8), "RGB")
-    im = im.resize((nw, height), Image.Resampling.LANCZOS)
+    im = im.resize((nw, nh), Image.Resampling.LANCZOS)
     im = im.filter(ImageFilter.UnsharpMask(radius=0.7, percent=30, threshold=2))
     return np.asarray(im, dtype=np.float32) / 255.0
 
@@ -679,7 +682,7 @@ def default_output(src: Path) -> Path:
 def parse_args(argv: list[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="Descreen a Pixelmator-processed CD front. Writes full-res "
-        "and a 600px-tall copy for FLAC embed. Do not run this on archival MusicBrainz JPEGs."
+        "and a max-600px (longer side) copy for FLAC embed. Do not run this on archival MusicBrainz JPEGs."
     )
     p.add_argument("input", type=Path, help="Straightened, cropped, WhiBal'd front JPEG")
     p.add_argument("-o", "--output", type=Path, help="Full-res JPEG (default: *-descreen.jpg)")
@@ -766,8 +769,8 @@ def main(argv: list[str]) -> int:
     dest = (args.output or default_output(src)).expanduser().resolve()
     save_jpeg(dest, full, quality=args.quality, icc_profile=meta["icc_profile"], dpi=meta["dpi"])
 
-    embed = dest.with_name(dest.stem + "-600.jpg")
-    embed_rgb = resize_height(full, EMBED_HEIGHT)
+    embed = dest.with_name(dest.stem + "-600.jpg")  # max 600 on longer side
+    embed_rgb = resize_max(full, EMBED_MAX)
     save_jpeg(embed, embed_rgb, quality=args.quality, icc_profile=meta["icc_profile"], dpi=(72.0, 72.0))
 
     angles = ", ".join(f"{a:.0f}°" for a in info["angles"])
